@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 np.set_printoptions(suppress=True)
 
+# Dataset direct link: http://opendata.cern.ch/record/328/files/atlas-higgs-challenge-2014-v2.csv.gz
 a = pd.read_csv("atlas-higgs-challenge-2014-v2.csv")
 a = a.drop(['EventId', 'KaggleSet', 'KaggleWeight', 'Weight'], axis=1)
 a.loc[a.Label == 'b', 'Label'] = 0
