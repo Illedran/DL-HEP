@@ -46,6 +46,7 @@ tensorflow==0.12.0rc0
 terminado==0.6
 Theano==0.8.2
 tornado==4.4.2
+tqdm==4.10.0
 traitlets==4.3.1
 wcwidth==0.1.7
 widgetsnbextension==1.2.6

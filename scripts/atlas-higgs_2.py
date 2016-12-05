@@ -11,12 +11,12 @@ np.set_printoptions(suppress=True)
 
 
 configuration = {
-    'dataset_num' : 1,
+    'dataset_num' : 0,
     'starting_dim': 50,
-    'encoded_dim': 5,
-    'layers_num': 5,
+    'encoded_dim': 10,
+    'layers_num': 4,
     'nb_epoch': 50,
-    'batch_normalization': True
+    'batch_normalization': False
 }
 
 activation = ELU

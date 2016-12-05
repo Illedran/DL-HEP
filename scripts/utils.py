@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef
 import os
-
+from tqdm import tqdm
 
 def parse_dataset(nan_class=None):
     with open("../data/atlas-higgs_nan-classes.txt") as f:
@@ -49,7 +49,7 @@ def get_train_test_data(X, y, random_state=1337):
 
 
 def save_stats(configuration, difference, y_test):
-    thresholds = 250
+    thresholds = 500
     metrics = {
         'thresh': {
             'data': [],
@@ -100,9 +100,9 @@ def save_stats(configuration, difference, y_test):
     }
     # np.linspace(difference.min(), difference.max(), num=thresholds)
     # np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds)
-    min_x = max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var() * 5)
-    max_x = difference[y_test == 1.].mean() + difference[y_test == 1.].var() * 5
-    for n in np.linspace(min_x, max_x, num=thresholds):
+    min_x = max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var() * 15)
+    max_x = difference[y_test == 1.].mean() + difference[y_test == 1.].var() * 15
+    for n in tqdm(np.linspace(min_x, max_x, num=thresholds)):
         y_predict = (difference >= n).astype(np.bool)
         y_test = y_test.astype(np.bool)
         metrics['thresh']['data'].append(n)
@@ -118,6 +118,7 @@ def save_stats(configuration, difference, y_test):
     for metric in metrics:
         if metrics[metric]['plotted']:
             plt.plot(metrics['thresh']['data'], metrics[metric]['data'], label=metrics[metric]['label'])
+
     plt.legend()
     plt.xlim([min_x, max_x])
     plt.ylim([0, 1])
@@ -135,9 +136,9 @@ def save_stats(configuration, difference, y_test):
     with open("../results/" + out_file + "/metadata.txt", 'w') as f:
         f.write("Test set data (anomalies, non_anomalies): %d, %d\n" % (
             len(y_test[y_test == 1.]), len(y_test[y_test == 0.])))
-        f.write("Reconstruction error mean (anomalies, non_anomalies): %5f, %5f\n" % (
+        f.write("Reconstruction error mean (anomalies, non_anomalies): %8f, %8f\n" % (
             difference[y_test == 1.].mean(), difference[y_test == 0.].mean()))
-        f.write("Reconstruction error var (anomalies, non_anomalies): %5f, %5f\n" % (
+        f.write("Reconstruction error var (anomalies, non_anomalies): %8f, %8f\n" % (
             difference[y_test == 1.].var(), difference[y_test == 0.].var()))
 
     pd.DataFrame(data=np.stack([metrics[metric]['data'] for metric in metrics]).T,
