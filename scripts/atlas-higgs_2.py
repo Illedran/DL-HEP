@@ -15,12 +15,12 @@ configuration = {
     'starting_dim': 50,
     'encoded_dim': 5,
     'layers_num': 5,
-    'nb_epoch': 1,
+    'nb_epoch': 50,
     'batch_normalization': True
 }
 
 activation = ELU
-step = (configuration['starting_dim'] - configuration['encoded_dim']) // configuration['encoded_dim']
+step = (configuration['starting_dim'] - configuration['encoded_dim']) // configuration['layers_num']
 
 def autoencoder():
     autoencoder = Sequential()
@@ -62,7 +62,7 @@ autoencoder = KerasRegressor(build_fn=autoencoder, nb_epoch=configuration['nb_ep
 autoencoder.fit(X_train, X_train)
 X_predict = autoencoder.predict(X_test)
 
-difference = np.linalg.norm(X_predict - X_test, axis=1)
+difference = ((X_predict-X_test)**2).mean(axis=1)
 
 print("Saving stats...")
 save_stats(configuration, difference, y_test)
