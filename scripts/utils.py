@@ -135,9 +135,9 @@ def save_stats(configuration, difference, y_test):
     with open("../results/" + out_file + "/metadata.txt", 'w') as f:
         f.write("Test set data (anomalies, non_anomalies): %d, %d\n" % (
             len(y_test[y_test == 1.]), len(y_test[y_test == 0.])))
-        f.write("Reconstruction error mean (anomalies, non_anomalies): %d, %d\n" % (
+        f.write("Reconstruction error mean (anomalies, non_anomalies): %5f, %5f\n" % (
             difference[y_test == 0.].mean(), difference[y_test == 1.].mean()))
-        f.write("Reconstruction error var (anomalies, non_anomalies): %d, %d\n" % (
+        f.write("Reconstruction error var (anomalies, non_anomalies): %5f, %5f\n" % (
             difference[y_test == 0.].var(), difference[y_test == 1.].var()))
 
     pd.DataFrame(data=np.stack([metrics[metric]['data'] for metric in metrics]).T,
