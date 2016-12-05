@@ -5,20 +5,20 @@ from sklearn.model_selection import train_test_split
 
 
 def parse_dataset(nan_class=None):
-    with open("data/atlas-higgs_nan-classes.txt") as f:
+    with open("../data/atlas-higgs_nan-classes.txt") as f:
         classes = map(int, f.read().split(','))
     if nan_class == None:
-        with open("data/atlas-higgs_nan-classes.txt") as f:
+        with open("../data/atlas-higgs_nan-classes.txt") as f:
             classes = f.read().split(',')
             datasets = {}
             for cls in classes:
-                atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data").values.astype(np.float32)
+                atlas_data = pd.read_hdf("../data/atlas-higgs_{}.hdf".format(cls), "atlas_data").values.astype(np.float32)
                 X = atlas_data[:, :-1]
                 y = atlas_data[:, -1]
                 datasets[cls] = (X, y)
             return datasets
     elif nan_class in classes:
-        atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(nan_class), "atlas_data").values.astype(np.float32)
+        atlas_data = pd.read_hdf("../data/atlas-higgs_{}.hdf".format(nan_class), "atlas_data").values.astype(np.float32)
         X = atlas_data[:, :-1]
         y = atlas_data[:, -1]
         return X, y

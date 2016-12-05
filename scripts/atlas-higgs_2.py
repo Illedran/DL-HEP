@@ -7,31 +7,36 @@ from keras.layers.advanced_activations import ELU
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef
 import matplotlib.pyplot as plt
-from scripts.utils import parse_dataset, get_train_test_data
+from utils import parse_dataset, get_train_test_data
 
 np.set_printoptions(suppress=True)
 
 X, y = parse_dataset(1)
 rows, cols = X.shape
 
--
+
 starting_size = 50
 encoded_dim = 5
 layers = 5
+activation = ELU
+batch_normalization = True
 step = (starting_size - encoded_dim) // layers
 def autoencoder():
     autoencoder = Sequential()
     autoencoder.add(Dense(starting_size, input_dim=cols))
-    autoencoder.add(ELU())
-    autoencoder.add(BatchNormalization())
+    autoencoder.add(activation())
+    if batch_normalization:
+        autoencoder.add(BatchNormalization())
     for i in range(starting_size-step, encoded_dim, -step):
         autoencoder.add(Dense(i))
-        autoencoder.add(ELU())
-        autoencoder.add(BatchNormalization())
+        autoencoder.add(activation())
+        if batch_normalization:
+            autoencoder.add(BatchNormalization())
     for i in range(encoded_dim, starting_size+step, step):
         autoencoder.add(Dense(i))
-        autoencoder.add(ELU())
-        autoencoder.add(BatchNormalization())
+        autoencoder.add(activation())
+        if batch_normalization:
+            autoencoder.add(BatchNormalization())
     autoencoder.add(Dense(cols))
     autoencoder.compile(optimizer='adadelta', loss='mse')
     autoencoder.summary()
@@ -54,7 +59,7 @@ autoencoder.fit(X_train, X_train)
 X_predict = autoencoder.predict(X_test)
 
 difference = np.linalg.norm(X_predict - X_test, axis=1)
-
+"""
 thresholds = 100
 thresh = []
 rocauc = []
@@ -63,7 +68,9 @@ prec = []
 rec = []
 acc = []
 corr = []
-for n in np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds):
+# np.linspace(difference.min(), difference.max(), num=thresholds)
+# np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds)
+for n in np.linspace(difference.min(), difference.max(), num=thresholds):
     y_predict = (difference >= n).astype(np.bool)
     y_test = y_test.astype(np.bool)
     thresh.append(n)
@@ -83,9 +90,9 @@ plt.plot(thresh, rec, label="Recall")
 plt.plot(thresh, acc, label="Accuracy")
 plt.plot(thresh, corr, label="Corr")
 plt.legend()
-plt.xlim([difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2])
+plt.xlim([difference.min(), difference.max()])
 plt.ylim([0,1])
 plt.show()
 
 # provare plottando accuracy delle 2 classi
-#
+"""
