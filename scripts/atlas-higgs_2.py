@@ -10,14 +10,16 @@ import matplotlib.pyplot as plt
 from utils import parse_dataset, get_train_test_data
 
 np.set_printoptions(suppress=True)
+dataset_num = 1
 
-X, y = parse_dataset(1)
+X, y = parse_dataset(dataset_num)
 rows, cols = X.shape
 
 
 starting_size = 50
 encoded_dim = 5
 layers = 5
+nb_epoch = 5000
 activation = ELU
 batch_normalization = True
 step = (starting_size - encoded_dim) // layers
@@ -53,13 +55,13 @@ X_train = preproc.transform(X_train)
 X_test = preproc.transform(X_test)
 
 # Preparing model
-autoencoder = KerasRegressor(build_fn=autoencoder, nb_epoch=5000, shuffle=True, batch_size=rows//100)
+autoencoder = KerasRegressor(build_fn=autoencoder, nb_epoch=nb_epoch, shuffle=True, batch_size=rows//100)
 
 autoencoder.fit(X_train, X_train)
 X_predict = autoencoder.predict(X_test)
 
 difference = np.linalg.norm(X_predict - X_test, axis=1)
-"""
+
 thresholds = 100
 thresh = []
 rocauc = []
@@ -70,7 +72,7 @@ acc = []
 corr = []
 # np.linspace(difference.min(), difference.max(), num=thresholds)
 # np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds)
-for n in np.linspace(difference.min(), difference.max(), num=thresholds):
+for n in np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds):
     y_predict = (difference >= n).astype(np.bool)
     y_test = y_test.astype(np.bool)
     thresh.append(n)
@@ -90,9 +92,6 @@ plt.plot(thresh, rec, label="Recall")
 plt.plot(thresh, acc, label="Accuracy")
 plt.plot(thresh, corr, label="Corr")
 plt.legend()
-plt.xlim([difference.min(), difference.max()])
+plt.xlim([difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2])
 plt.ylim([0,1])
-plt.show()
-
-# provare plottando accuracy delle 2 classi
-"""
+plt.savefig("../results/{0}-{1}-{2}-{3}-{4}-{5}.png".format(dataset_num, starting_size, encoded_dim, layers, nb_epoch, 'bn' if batch_normalization else 'no'))
