@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
-import matplotlib
-
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 import os
+if 'DISPLAY' in os.environ:
+    import matplotlib.pyplot as plt
+else:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 from tqdm import tqdm
 
 def parse_dataset(nan_class=None):
@@ -53,7 +55,7 @@ def get_train_test_data(X, y, random_state=1337, train_size=0.8):
 
 
 def save_stats(configuration, difference, y_test):
-    thresholds = 100
+    thresholds = 1000
     metrics = {
         'thresh': {
             'data': [],
@@ -100,22 +102,20 @@ def save_stats(configuration, difference, y_test):
             'label': 'Number of regular data',
             'plotted': False
         }
-
     }
-    # np.linspace(difference.min(), difference.max(), num=thresholds)
-    # np.linspace(difference[y_test==0.].mean()-difference[y_test==0.].var()*2, difference[y_test==1.].mean()+difference[y_test==1.].var()*2, num=thresholds)
-    min_x = max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var() * 15)
-    max_x = difference[y_test == 1.].mean() + difference[y_test == 1.].var() * 15
+    min_x = 0 # max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var())
+    max_x = 0.1 # difference[y_test == 1.].mean() + difference[y_test == 1.].var()
+    y_real = y_test.astype(np.bool)
+
     for n in tqdm(np.linspace(min_x, max_x, num=thresholds)):
         y_predict = (difference >= n).astype(np.bool)
-        y_test = y_test.astype(np.bool)
         metrics['thresh']['data'].append(n)
-        metrics['rocauc']['data'].append(roc_auc_score(y_test, y_predict))
-        metrics['f1']['data'].append(f1_score(y_test, y_predict))
-        metrics['prec']['data'].append(precision_score(y_test, y_predict))
-        metrics['rec']['data'].append(recall_score(y_test, y_predict))
-        metrics['acc']['data'].append(accuracy_score(y_test, y_predict))
-        metrics['corr']['data'].append(matthews_corrcoef(y_test, y_predict))
+        metrics['rocauc']['data'].append(roc_auc_score(y_real, y_predict))
+        metrics['f1']['data'].append(f1_score(y_real, y_predict))
+        metrics['prec']['data'].append(precision_score(y_real, y_predict))
+        metrics['rec']['data'].append(recall_score(y_real, y_predict))
+        metrics['acc']['data'].append(accuracy_score(y_real, y_predict))
+        metrics['corr']['data'].append(matthews_corrcoef(y_real, y_predict))
         metrics['num_anomalies']['data'].append(y_predict.sum())
         metrics['num_regular']['data'].append(len(y_predict) - y_predict.sum())
 
