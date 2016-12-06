@@ -103,12 +103,12 @@ def save_stats(configuration, difference, y_test):
             'plotted': False
         }
     }
-    min_x = 0 # max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var())
-    max_x = 0.1 # difference[y_test == 1.].mean() + difference[y_test == 1.].var()
+    min_x = difference.min() # max(0, difference[y_test == 0.].mean() - difference[y_test == 0.].var())
+    max_x = difference.max() # difference[y_test == 1.].mean() + difference[y_test == 1.].var()
     y_real = y_test.astype(np.bool)
 
-    for n in tqdm(np.linspace(min_x, max_x, num=thresholds)):
-        y_predict = (difference >= n).astype(np.bool)
+    for n in tqdm(np.sort(difference)):
+        y_predict = (difference > n).astype(np.bool)
         metrics['thresh']['data'].append(n)
         metrics['rocauc']['data'].append(roc_auc_score(y_real, y_predict))
         metrics['f1']['data'].append(f1_score(y_real, y_predict))
