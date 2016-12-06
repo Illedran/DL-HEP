@@ -6,7 +6,7 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef
+from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 import os
 from tqdm import tqdm
 
@@ -33,23 +33,27 @@ def parse_dataset(nan_class=None):
         return None
 
 
-def get_train_test_data(X, y, random_state=1337):
+def get_train_test_data(X, y, random_state=1337, train_size=0.8):
     X_b = X[y == 0.]  # Non-anomaly
     X_s = X[y == 1.]  # Anomaly
     y_b = y[y == 0.]  # Non-anomaly
     y_s = y[y == 1.]  # Anomaly
 
-    # Train on 80% of non-anomaly data
-    X_b_train, X_b_test, y_b_train, y_b_test = train_test_split(X_b, y_b, train_size=0.8, random_state=random_state)
+    np.random.seed(random_state)
+    idxes = np.arange(len(X_b))
+    np.random.shuffle(idxes)
+    split_idx = int(len(idxes) * train_size)
 
-    X_train, y_train = shuffle(X_b_train, y_b_train, random_state=random_state)
-    X_test, y_test = shuffle(np.vstack([X_b_test, X_s]), np.hstack([y_b_test, y_s]), random_state=random_state)
+    X_train = X_b[idxes[:split_idx]]
+    y_train = y_b[idxes[:split_idx]]
+    X_test = np.vstack([X_b[idxes[split_idx:]], X_s])
+    y_test = np.hstack([y_b[idxes[split_idx:]], y_s])
 
     return (X_train, y_train, X_test, y_test)
 
 
 def save_stats(configuration, difference, y_test):
-    thresholds = 500
+    thresholds = 100
     metrics = {
         'thresh': {
             'data': [],

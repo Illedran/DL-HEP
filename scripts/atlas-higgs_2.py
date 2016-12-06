@@ -1,26 +1,31 @@
 import numpy as np
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler, MinMaxScaler
 from sklearn.pipeline import Pipeline
 from keras.models import Sequential
 from keras.layers import Dense, BatchNormalization
 from keras.layers.advanced_activations import ELU
 from keras.wrappers.scikit_learn import KerasRegressor
 from utils import parse_dataset, get_train_test_data, save_stats
+from keras import backend as K
 
 np.set_printoptions(suppress=True)
 
-
 configuration = {
-    'dataset_num' : 0,
-    'starting_dim': 50,
-    'encoded_dim': 10,
+    'dataset_num': 0,
+    'starting_dim': 38,
+    'encoded_dim': 2,
     'layers_num': 4,
     'nb_epoch': 50,
-    'batch_normalization': False
+    'batch_normalization': True
 }
 
 activation = ELU
 step = (configuration['starting_dim'] - configuration['encoded_dim']) // configuration['layers_num']
+
+
+def reconstruction_error(y_true, y_pred):
+    return K.sqrt(K.sum(K.square(y_true - y_pred), axis=-1))
+
 
 def autoencoder():
     autoencoder = Sequential()
@@ -39,9 +44,10 @@ def autoencoder():
         if configuration['batch_normalization']:
             autoencoder.add(BatchNormalization())
     autoencoder.add(Dense(cols))
-    autoencoder.compile(optimizer='adadelta', loss='mse')
+    autoencoder.compile(optimizer='adadelta', loss=reconstruction_error)
     autoencoder.summary()
     return autoencoder
+
 
 X, y = parse_dataset(configuration['dataset_num'])
 rows, cols = X.shape
@@ -49,7 +55,7 @@ rows, cols = X.shape
 X_train, y_train, X_test, y_test = get_train_test_data(X, y)
 
 # Preprocessing: imputing of NaN values and normalization
-sscaler = RobustScaler()
+sscaler = MinMaxScaler()
 
 preproc = Pipeline([('scaler', sscaler)])
 preproc.fit(X_train)
@@ -57,12 +63,13 @@ X_train = preproc.transform(X_train)
 X_test = preproc.transform(X_test)
 
 # Preparing model
-autoencoder = KerasRegressor(build_fn=autoencoder, nb_epoch=configuration['nb_epoch'], shuffle=True, batch_size=rows // 100)
+autoencoder = KerasRegressor(build_fn=autoencoder, nb_epoch=configuration['nb_epoch'], shuffle=True,
+                             batch_size=rows // 100)
 
 autoencoder.fit(X_train, X_train)
 X_predict = autoencoder.predict(X_test)
 
-difference = ((X_predict-X_test)**2).mean(axis=1)
+difference = np.linalg.norm(X_predict - X_test, axis=1)
 
 print("Saving stats...")
 save_stats(configuration, difference, y_test)
