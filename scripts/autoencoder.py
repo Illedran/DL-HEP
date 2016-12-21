@@ -8,7 +8,7 @@ def create_dense_autoencoder(input_dimensions, latent_dimensions, layers, activa
     for layer_dims in layers:
         x = Dense(layer_dims)(x)
         if activation is not None:
-            if type(activation) is 'str':
+            if type(activation) is str:
                 x = Activation(activation)(x)
             else:
                 x = Activation(activation())(x)
@@ -18,7 +18,7 @@ def create_dense_autoencoder(input_dimensions, latent_dimensions, layers, activa
     x = encoded
     for layer_dims in reversed(layers):
         x = Dense(layer_dims)(x)
-        if type(activation) is 'str':
+        if type(activation) is str:
             x = Activation(activation)(x)
         else:
             x = Activation(activation())(x)
