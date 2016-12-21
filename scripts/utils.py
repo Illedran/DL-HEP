@@ -12,50 +12,48 @@ else:
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 from tqdm import tqdm
 
-def parse_dataset(nan_class=None):
-    with open("../data/atlas-higgs_nan-classes.txt") as f:
-        classes = map(int, f.read().split(','))
-    if nan_class == None:
-        with open("../data/atlas-higgs_nan-classes.txt") as f:
-            classes = f.read().split(',')
-            datasets = {}
-            for cls in classes:
-                atlas_data = pd.read_hdf("../data/atlas-higgs_{}.hdf".format(cls), "atlas_data").values.astype(
-                    np.float32)
-                X = atlas_data[:, :-1]
-                y = atlas_data[:, -1]
-                datasets[cls] = (X, y)
-            return datasets
-    elif nan_class in classes:
-        atlas_data = pd.read_hdf("../data/atlas-higgs_{}.hdf".format(nan_class), "atlas_data").values.astype(np.float32)
-        X = atlas_data[:, :-1]
-        y = atlas_data[:, -1]
-        return X, y
+# Datasets can be:
+# 0,1,7,8,10,11,t,b,u,v
+def parse_dataset(cls=None):
+    if cls in ['t','b','u','v']:
+        atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
+        w = atlas_data.KaggleWeight.values.astype(np.float32)
+        y = atlas_data.Label.values.astype(np.float32)
+        ids = atlas_data.EventId.values
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        return X, y, w, ids
+    elif cls in ['0','1','7','8','10','11']:
+        atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
+        w = atlas_data.Weight.values.astype(np.float32)
+        y = atlas_data.Label.values.astype(np.float32)
+        ids = atlas_data.EventId.values
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        return X, y, w, ids
     else:
-        return None
+        atlas_data = pd.read_hdf("data/atlas-higgs.hdf", "atlas_data")
+        w = atlas_data.Weight.values.astype(np.float32)
+        y = atlas_data.Label.values.astype(np.float32)
+        ids = atlas_data.EventId.values
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        return X, y, w, ids
 
-
-def get_train_test_data(X, y, random_state=1337, train_size=0.8):
+def get_train_test_data(X, y, w, random_state=1337, train_size=0.8):
     X_b = X[y == 0.]  # Non-anomaly
     X_s = X[y == 1.]  # Anomaly
     y_b = y[y == 0.]  # Non-anomaly
     y_s = y[y == 1.]  # Anomaly
+    w_b = w[y == 0.]  # Non-anomaly
+    w_s = w[y == 1.]  # Anomaly
 
-    np.random.seed(random_state)
-    idxes = np.arange(len(X_b))
-    np.random.shuffle(idxes)
-    split_idx = int(len(idxes) * train_size)
 
-    X_train = X_b[idxes[:split_idx]]
-    y_train = y_b[idxes[:split_idx]]
-    X_test = np.vstack([X_b[idxes[split_idx:]], X_s])
-    y_test = np.hstack([y_b[idxes[split_idx:]], y_s])
-
-    return (X_train, y_train, X_test, y_test)
+    X_b_train, X_b_test, y_b_train, y_b_test, w_b_train, w_b_test = \
+        train_test_split(X_b, y_b, w_b, train_size=train_size, random_state=random_state)
+    X_train, y_train, w_train = shuffle(X_b_train, y_b_train, w_b_train, random_state=random_state)
+    X_test, y_test, w_test = shuffle(np.vstack([X_b_test, X_s]), np.hstack([y_b_test, y_s]), np.hstack([w_b_test, w_s]), random_state=random_state)
+    return (X_train, y_train, w_train, X_test, y_test, w_test)
 
 
 def save_stats(configuration, difference, y_test):
-    thresholds = 1000
     metrics = {
         'thresh': {
             'data': [],

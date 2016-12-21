@@ -5,19 +5,23 @@ def create_dense_autoencoder(input_dimensions, latent_dimensions, layers, activa
                              optimizer='adadelta', loss='mse', batch_normalization=False):
     input_layer = Input(shape=(input_dimensions,))
     x = input_layer
-    depth = len(layers)
     for layer_dims in layers:
         x = Dense(layer_dims)(x)
         if activation is not None:
-            x = Activation(activation)(x)
+            if type(activation) is 'str':
+                x = Activation(activation)(x)
+            else:
+                x = Activation(activation())(x)
         if batch_normalization:
             x = BatchNormalization()(x)
     encoded = Dense(latent_dimensions)(x)
     x = encoded
     for layer_dims in reversed(layers):
         x = Dense(layer_dims)(x)
-        if activation is not None:
+        if type(activation) is 'str':
             x = Activation(activation)(x)
+        else:
+            x = Activation(activation())(x)
         if batch_normalization:
             x = BatchNormalization()(x)
     decoded = Dense(input_dimensions)(x)
