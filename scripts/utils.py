@@ -20,21 +20,27 @@ def parse_dataset(cls=None):
         w = atlas_data.KaggleWeight.values.astype(np.float32)
         y = atlas_data.Label.values.astype(np.float32)
         ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
+                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
+                            , axis=1).values.astype(np.float32)
         return X, y, w, ids
     elif cls in ['0','1','7','8','10','11']:
         atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
         w = atlas_data.Weight.values.astype(np.float32)
         y = atlas_data.Label.values.astype(np.float32)
         ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
+                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
+                            , axis=1).values.astype(np.float32)
         return X, y, w, ids
     else:
         atlas_data = pd.read_hdf("data/atlas-higgs.hdf", "atlas_data")
         w = atlas_data.Weight.values.astype(np.float32)
         y = atlas_data.Label.values.astype(np.float32)
         ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet'], axis=1).values.astype(np.float32)
+        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
+                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
+                            , axis=1).values.astype(np.float32)
         return X, y, w, ids
 
 def get_train_test_data(X, y, w, random_state=1337, train_size=0.8):
