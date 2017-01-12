@@ -10,7 +10,7 @@ ensemble = []
 
 type_size = 36
 
-X_train, y_train, _ = parse_dataset('t')
+X_train, y_train, w_train = parse_dataset('t')
 X_test, y_test, w_test = parse_dataset('b')
 
 rows, cols = X_train.shape
@@ -29,7 +29,7 @@ for _ in range(type_size):
 
     model.compile(loss='binary_crossentropy', optimizer='adadelta')
 
-    model.fit(X_train, y_train, nb_epoch=100, batch_size=10)
+    model.fit(X_train, y_train, nb_epoch=250, batch_size=10, sample_weight=w_train)
 
     ensemble.append(model)
 
@@ -41,7 +41,7 @@ for _ in range(type_size):
 
     model.compile(loss='binary_crossentropy', optimizer='adadelta')
 
-    model.fit(X_train, y_train, nb_epoch=100, batch_size=10)
+    model.fit(X_train, y_train, nb_epoch=250, batch_size=10, sample_weight=w_train)
 
     ensemble.append(model)
 
@@ -54,6 +54,6 @@ for _ in range(type_size):
 
     model.compile(loss='binary_crossentropy', optimizer='adadelta')
 
-    model.fit(X_train, y_train, nb_epoch=100, batch_size=10)
+    model.fit(X_train, y_train, nb_epoch=250, batch_size=10, sample_weight=w_train)
 
     ensemble.append(model)

@@ -19,8 +19,7 @@ def parse_dataset(cls=None):
     atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
     w = atlas_data.KaggleWeight.values.astype(np.float32)
     y = atlas_data.Label.values.astype(np.float32)
-    X = atlas_data.drop(['Label', #'KaggleWeight',
-                         'Weight'], axis=1).values.astype(np.float32)
+    X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight'], axis=1).values.astype(np.float32)
     return X, y, w
 
 def get_train_test_data(X, y, w, random_state=1337, train_size=0.8):
