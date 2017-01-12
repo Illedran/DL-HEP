@@ -9,39 +9,19 @@ else:
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 from tqdm import tqdm
 
 # Datasets can be:
 # 0,1,7,8,10,11,t,b,u,v
 def parse_dataset(cls=None):
-    if cls in ['t','b','u','v']:
-        atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
-        w = atlas_data.KaggleWeight.values.astype(np.float32)
-        y = atlas_data.Label.values.astype(np.float32)
-        ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
-                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
-                            , axis=1).values.astype(np.float32)
-        return X, y, w, ids
-    elif cls in ['0','1','7','8','10','11']:
-        atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
-        w = atlas_data.Weight.values.astype(np.float32)
-        y = atlas_data.Label.values.astype(np.float32)
-        ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
-                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
-                            , axis=1).values.astype(np.float32)
-        return X, y, w, ids
-    else:
-        atlas_data = pd.read_hdf("data/atlas-higgs.hdf", "atlas_data")
-        w = atlas_data.Weight.values.astype(np.float32)
-        y = atlas_data.Label.values.astype(np.float32)
-        ids = atlas_data.EventId.values
-        X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight', 'EventId', 'KaggleSet',
-                             'PRI_tau_phi', 'PRI_lep_phi', 'PRI_met_phi', 'PRI_jet_leading_phi', 'PRI_jet_subleading_phi']
-                            , axis=1).values.astype(np.float32)
-        return X, y, w, ids
+    atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
+    w = atlas_data.KaggleWeight.values.astype(np.float32)
+    y = atlas_data.Label.values.astype(np.float32)
+    X = atlas_data.drop(['Label', #'KaggleWeight',
+                         'Weight'], axis=1).values.astype(np.float32)
+    return X, y, w
 
 def get_train_test_data(X, y, w, random_state=1337, train_size=0.8):
     X_b = X[y == 0.]  # Non-anomaly
@@ -152,3 +132,10 @@ def save_stats(configuration, difference, y_test):
     pd.DataFrame(data=np.stack([metrics[metric]['data'] for metric in metrics]).T,
                  columns=[metrics[metric]['label'] for metric in metrics]).to_hdf(
         "../results/" + out_file + "/metrics.hdf", "metrics", mode='w', complib='zlib', complevel=9)
+
+def ams(y_predict, y_true, weights):
+    s = weights[np.logical_and(y_true, y_predict)].sum()
+    b = weights[np.logical_and(np.logical_not(y_true), y_predict)].sum()
+    b_reg = 10
+
+    return np.sqrt(2 * ((s + b + b_reg) * np.log(s / (b + b_reg) + 1) - s))
