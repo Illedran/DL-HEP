@@ -23,10 +23,12 @@ nbformat==4.2.0
 notebook==4.3.1
 numexpr==2.6.1
 numpy==1.11.3
+packaging==16.8
 pandas==0.19.2
 pandocfilters==1.4.1
 pexpect==4.2.1
 pickleshare==0.7.4
+pip-review==0.5
 pkg-resources==0.0.0
 prompt-toolkit==1.0.9
 protobuf==3.1.0.post1
@@ -50,7 +52,7 @@ terminado==0.6
 testpath==0.3
 Theano==0.8.2
 tornado==4.4.2
-tqdm==4.10.0
+tqdm==4.11.0
 traitlets==4.3.1
 wcwidth==0.1.7
 webencodings==0.5
