@@ -10,8 +10,8 @@ import pickle
 
 # Background: #6DB6FF
 # Signal: #920000
-for loss in ['mse', 'cosine_proximity']:
-    for z in [1,2,4,8]:
+for loss in ['cosine_proximity', 'mse']:
+    for z in [1, 2, 4, 8]:
         histories = []
         for jet_class in [0, 1, 2, 3]:
             X_train, y_train, _ = parse_dataset(cls='t-{}'.format(jet_class))
