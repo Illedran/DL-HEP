@@ -2,16 +2,10 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
-import os
-if 'DISPLAY' in os.environ:
-    import matplotlib.pyplot as plt
-else:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-
 from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score, matthews_corrcoef, mean_squared_error
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+import os
 
 # Datasets can be:
 # 0,1,7,8,10,11,t,b,u,v
@@ -19,7 +13,7 @@ def parse_dataset(cls=None):
     atlas_data = pd.read_hdf("data/atlas-higgs_{}.hdf".format(cls), "atlas_data")
     w = atlas_data.KaggleWeight.values.astype(np.float32)
     y = atlas_data.Label.values.astype(np.float32)
-    X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight'], axis=1).values.astype(np.float32)
+    X = atlas_data.drop(['Label', 'KaggleWeight', 'Weight'], axis=1)
     return X, y, w
 
 def get_train_test_data(X, y, w, random_state=1337, train_size=0.8):
@@ -138,3 +132,17 @@ def ams(y_predict, y_true, weights):
     b_reg = 10
 
     return np.sqrt(2 * ((s + b + b_reg) * np.log(s / (b + b_reg) + 1) - s))
+
+
+
+def show_graph(name, save_to='', format='pdf', dpi=300):
+    import os
+    if 'DISPLAY' in os.environ:
+        DISPLAY = True
+    else:
+        DISPLAY = False
+
+    if DISPLAY and save_to == '':
+        plt.show()
+    else:
+        plt.savefig(save_to + '/' + name + '.{}'.format(format), format=format, dpi=dpi)
