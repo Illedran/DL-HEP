@@ -1,0 +1,14 @@
+numpy
+scipy
+sklearn
+pandas
+theano
+keras
+matplotlib
+tqdm
+jupyter
+tables
+tqdm
+wheel
+h5py
+pip-tools
