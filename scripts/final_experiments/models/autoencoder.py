@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.contrib.layers import fully_connected, optimize_loss, layer_norm, batch_norm
+from tensorflow.contrib.layers import fully_connected, optimize_loss, layer_norm, batch_norm, dropout
 
 class Autoencoder():
     def __init__(self, input_dimensions, latent_dimensions, layers, layer_params=None):
@@ -28,25 +28,25 @@ class Autoencoder():
         self.optimizer = tf.train.AdamOptimizer()
         self.loss = tf.losses.mean_squared_error(self.input_layer, self.decoded)
 
-        def decay_lr(lr, step):
-            return tf.train.exponential_decay(lr, step, 10000, 0.99)
-
-        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=0.0001,
-                                   learning_rate_decay_fn=decay_lr, optimizer='Adam')
+        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')
 
 
 class VariationalAutoencoder():
-    def __init__(self, input_dimensions, latent_dimensions, layers, activation=tf.nn.elu, learning_rate=0.001,
-                 batch_size=512):
+    def __init__(self, input_dimensions, latent_dimensions, layers, layer_params=None):
 
-        self.input_layer = tf.placeholder(tf.float32, [batch_size, input_dimensions])
+        if layer_params is None:
+            layer_params = {
+                'activation_fn': tf.nn.relu6,
+                # 'normalizer_fn': layer_norm
+            }
+
+        self.input_layer = tf.placeholder(tf.float32, [None, input_dimensions])
+        batch_size = tf.shape(self.input_layer)[0]
         self.step = tf.Variable(0, trainable=False)
 
         x = self.input_layer
         for layer_dims in layers:
-            x = fully_connected(x, layer_dims, activation_fn=activation,
-                                # normalizer_fn=layer_norm
-                                )
+            x = fully_connected(x, layer_dims, **layer_params)
 
         self.z_mu = fully_connected(x, latent_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm
@@ -60,9 +60,7 @@ class VariationalAutoencoder():
 
         x = self.z
         for layer_dims in reversed(layers):
-            x = fully_connected(x, layer_dims, activation_fn=activation,
-                                # normalizer_fn=layer_norm
-                                )
+            x = fully_connected(x, layer_dims, **layer_params)
 
         self.x_mu = fully_connected(x, input_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm
@@ -77,8 +75,4 @@ class VariationalAutoencoder():
         self.latent_loss = -0.5 * tf.reduce_sum(1 + self.z_ls2 - tf.square(self.z_mu) - tf.exp(self.z_ls2), 1)
         self.loss = tf.reduce_mean(self.reconstr_loss + self.latent_loss)
 
-        def decay_lr(lr, step):
-            return tf.train.exponential_decay(lr, step, 5000, 0.94)
-
-        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=learning_rate, optimizer='Adam',
-                                   clip_gradients=10., learning_rate_decay_fn=decay_lr)
+        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')
