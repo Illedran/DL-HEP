@@ -32,18 +32,20 @@ def AutoencoderTrain(params):
     X_b = ss.transform(X_b)
     X_b_val = ss.transform(X_val[y_val == 0])
 
+    tf.reset_default_graph()
     if params['model_type'] == 'ae':
         model = Autoencoder(cols, 2, [50, 25])
     elif params['model_type'] == 'vae':
         model = VariationalAutoencoder(cols, 2, [50, 25])
 
     init = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+
     bar_postfix_data = OrderedDict()
     history = OrderedDict()
     history['train_loss'] = []
     history['val_loss'] = []
 
-    saver = tf.train.Saver()
     with tf.Session() as sess:
         sess.run(init)
         for epoch in range(params['epochs']):
@@ -71,7 +73,7 @@ def AutoencoderTrain(params):
 
 def main():
     params = {
-        'batch_size': 128,
+        'batch_size': 256,
         'epochs': 2000,
     }
 

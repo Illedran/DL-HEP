@@ -26,7 +26,7 @@ class Autoencoder():
         self.decoded = fully_connected(x, input_dimensions, activation_fn=None)
 
         self.optimizer = tf.train.AdamOptimizer()
-        self.loss = tf.losses.mean_squared_error(self.input_layer, self.decoded)
+        self.loss = tf.contrib.losses.mean_squared_error(self.input_layer, self.decoded)
 
         self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')
 
