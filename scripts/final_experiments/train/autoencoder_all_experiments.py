@@ -22,15 +22,16 @@ def AutoencoderTrain(params):
                         "y")
 
     X_b = X_train[y_train == 0]
-    X_b = X_b
     rows, cols = X_b.shape
 
     ss = StandardScaler()
 
     ss.fit(X_b)
-
     X_b = ss.transform(X_b)
+    X_s = ss.transform(X_train[y_train == 1])
+
     X_b_val = ss.transform(X_val[y_val == 0])
+    X_s_val = ss.transform(X_val[y_val == 1])
 
     tf.reset_default_graph()
     if params['model_type'] == 'ae':
@@ -43,8 +44,10 @@ def AutoencoderTrain(params):
 
     bar_postfix_data = OrderedDict()
     history = OrderedDict()
-    history['train_loss'] = []
-    history['val_loss'] = []
+    history['train_loss_b'] = []
+    history['train_loss_s'] = []
+    history['val_loss_b'] = []
+    history['val_loss_s'] = []
 
     with tf.Session() as sess:
         sess.run(init)
@@ -55,13 +58,21 @@ def AutoencoderTrain(params):
                     _, loss = sess.run([model.model, model.loss], feed_dict={model.input_layer: batch})
                     # Update data and bar
                     bar.update(b_size)
-                train_loss = sess.run(model.loss, feed_dict={model.input_layer: X_b})
-                bar_postfix_data['train_loss'] = train_loss
-                history['train_loss'].append(float(train_loss))  # np.float32 are not json serializable
-                bar.set_postfix(bar_postfix_data)
-                val_loss = sess.run(model.loss, feed_dict={model.input_layer: X_b_val})
-                bar_postfix_data['val_loss'] = val_loss
-                history['val_loss'].append(float(val_loss))  # np.float32 are not json serializable
+                train_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_b})
+                bar_postfix_data['train_loss_b'] = train_loss_b
+                history['train_loss_b'].append(float(train_loss_b))  # np.float32 are not json serializable
+                train_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s})
+                bar_postfix_data['train_loss_s'] = train_loss_s
+                history['train_loss_s'].append(float(train_loss_s))  # np.float32 are not json serializable
+
+                val_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_b_val})
+                bar_postfix_data['val_loss_b'] = val_loss_b
+                history['val_loss_b'].append(float(val_loss_b))  # np.float32 are not json serializable
+                val_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s_val})
+                bar_postfix_data['val_loss_s'] = val_loss_s
+                history['val_loss_s'].append(float(val_loss_s))  # np.float32 are not json serializable
+
+                
                 bar.set_postfix(bar_postfix_data)
 
             if epoch % 10 == 0 or epoch == params['epochs'] - 1:
