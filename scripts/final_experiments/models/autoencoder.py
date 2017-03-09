@@ -6,29 +6,35 @@ class Autoencoder():
 
         if layer_params is None:
             layer_params = {
-                'activation_fn': tf.nn.relu6,
-                # 'normalizer_fn': layer_norm
+                'activation_fn': tf.nn.elu,
+                'normalizer_fn': layer_norm
             }
 
         self.input_layer = tf.placeholder(tf.float32, [None, input_dimensions])
+        self.dropout = tf.placeholder(tf.float32)
         self.step = tf.Variable(0, trainable=False)
 
         x = self.input_layer
         for layer_dims in layers:
+            x = tf.nn.dropout(x, 1-self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
+        x = tf.nn.dropout(x, 1-self.dropout)
         self.encoded = fully_connected(x, latent_dimensions, activation_fn=None)
 
         x = self.encoded
         for layer_dims in reversed(layers):
+            x = tf.nn.dropout(x, 1-self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
+        x = tf.nn.dropout(x, 1-self.dropout)
         self.decoded = fully_connected(x, input_dimensions, activation_fn=None)
 
         self.optimizer = tf.train.AdamOptimizer()
-        self.loss = tf.contrib.losses.mean_squared_error(self.input_layer, self.decoded)
+        self.sloss = tf.reduce_mean(tf.square(self.input_layer-self.decoded), axis=1)
+        self.loss = tf.reduce_mean(self.sloss)
 
-        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')
+        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-3, optimizer='Adam')
 
 
 class VariationalAutoencoder():
@@ -73,6 +79,8 @@ class VariationalAutoencoder():
             0.5 * self.x_ls2 + (tf.square(self.input_layer - self.x_mu) / (2.0 * tf.exp(self.x_ls2))), 1)
 
         self.latent_loss = -0.5 * tf.reduce_sum(1 + self.z_ls2 - tf.square(self.z_mu) - tf.exp(self.z_ls2), 1)
-        self.loss = tf.reduce_mean(self.reconstr_loss + self.latent_loss)
+        self.sloss = self.reconstr_loss + self.latent_loss
+        self.loss = tf.reduce_mean(self.sloss)
+
 
         self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')

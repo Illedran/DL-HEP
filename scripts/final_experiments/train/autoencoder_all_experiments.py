@@ -16,34 +16,24 @@ def AutoencoderTrain(params):
         "X").values.astype(np.float32)
     y_train = pd.read_hdf(
         "scripts/final_experiments/data/{0}_train_{1}.hdf".format(params['name_prefix'], params['jet_num']), "y")
-    X_val = pd.read_hdf(
-        "scripts/final_experiments/data/{0}_val_{1}.hdf".format(params['name_prefix'], params['jet_num']),
-        "X").values.astype(np.float32)
-    y_val = pd.read_hdf(
-        "scripts/final_experiments/data/{0}_val_{1}.hdf".format(params['name_prefix'], params['jet_num']),"y")
 
     X_b = X_train[y_train == 0]
     X_s = X_train[y_train == 1]
-
-    X_b_val = X_val[y_val == 0]
-    X_s_val = X_val[y_val == 1]
 
     rows, cols = X_b.shape
 
     ss = StandardScaler()
 
     ss.fit(X_b)
+
     X_b = ss.transform(X_b)
     X_s = ss.transform(X_s)
 
-    X_b_val = ss.transform(X_b_val)
-    X_s_val = ss.transform(X_s_val)
-
     tf.reset_default_graph()
     if params['model_type'] == 'ae':
-        model = Autoencoder(cols, 2, [50, 25])
+        model = Autoencoder(cols, 10, [1500, 1500, 1500])
     elif params['model_type'] == 'vae':
-        model = VariationalAutoencoder(cols, 2, [50, 25])
+        model = VariationalAutoencoder(cols, 5, [1000, 1000, 1000, 1000])
 
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
@@ -51,35 +41,25 @@ def AutoencoderTrain(params):
     bar_postfix_data = OrderedDict()
     history = OrderedDict()
     history['train_loss_b'] = []
-    # history['train_loss_s'] = []
-    history['val_loss_b'] = []
-    # history['val_loss_s'] = []
+    history['train_loss_s'] = []
 
     with tf.Session() as sess:
         sess.run(init)
         for epoch in range(params['epochs']):
             with tqdm(desc="Epoch {0:04d}".format(epoch + 1), total=rows, ncols=200) as bar:
-                for batch in batch_generator(np.random.permutation(X_b), params['batch_size']):
+                for batch in batch_generator(np.random.permutation(X_b), len(X_b)//100): # 100 gradient updates per epoch
                     b_size = len(batch)
-                    sess.run(model.model, feed_dict={model.input_layer: batch})
+                    sess.run(model.model, feed_dict={model.input_layer: batch, model.dropout: 0.5})
                     # Update data and bar
                     bar.update(b_size)
 
-                train_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_b})
+                train_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_b, model.dropout: 0.})
                 bar_postfix_data['train_loss_b'] = train_loss_b
                 history['train_loss_b'].append(float(train_loss_b))  # np.float32 are not json serializable
 
-                # train_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s})
-                # bar_postfix_data['train_loss_s'] = train_loss_s
-                # history['train_loss_s'].append(float(train_loss_s))  # np.float32 are not json serializable
-
-                val_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_b_val})
-                bar_postfix_data['val_loss_b'] = val_loss_b
-                history['val_loss_b'].append(float(val_loss_b))  # np.float32 are not json serializable
-
-                # val_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s_val})
-                # bar_postfix_data['val_loss_s'] = val_loss_s
-                # history['val_loss_s'].append(float(val_loss_s))  # np.float32 are not json serializable
+                train_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s, model.dropout: 0.})
+                bar_postfix_data['train_loss_s'] = train_loss_s
+                history['train_loss_s'].append(float(train_loss_s))  # np.float32 are not json serializable
 
                 bar.set_postfix(bar_postfix_data)
 
@@ -93,11 +73,10 @@ def AutoencoderTrain(params):
 
 def main():
     params = {
-        'batch_size': 256,
-        'epochs': 2000,
+        'epochs': 1000,
     }
 
-    for model_type in ['ae', 'vae']:
+    for model_type in ['ae']:#, 'vae']:
         for name_prefix in ["atlas-higgs_esperiment1", "atlas-higgs_esperiment2"]:
             for jet_num in [0, 1, 2, 3]:
                 params['jet_num'] = jet_num
