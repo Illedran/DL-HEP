@@ -18,8 +18,15 @@ def AutoencoderTrain(params):
     y_train = pd.read_hdf(
         "scripts/final_experiments/data/{0}_train_{1}.hdf".format(params['name_prefix'], params['jet_num']), "y")
 
+    X_test = pd.read_hdf(
+        "scripts/final_experiments/data/{0}_test_{1}.hdf".format(params['name_prefix'], params['jet_num']),
+        "X").values.astype(np.float32)
+    y_test = pd.read_hdf(
+        "scripts/final_experiments/data/{0}_test_{1}.hdf".format(params['name_prefix'], params['jet_num']), "y")
+    w_test = pd.read_hdf(
+        "scripts/final_experiments/data/{0}_test_{1}.hdf".format(params['name_prefix'], params['jet_num']), "w")
+
     X_b = X_train[y_train == 0]
-    X_s = X_train[y_train == 1]
 
     rows, cols = X_b.shape
 
@@ -28,8 +35,8 @@ def AutoencoderTrain(params):
     ss.fit(X_b)
 
     X_b = ss.transform(X_b)
-    X_s = ss.transform(X_s)
-
+    X_test = ss.transform(X_test)
+    
     tf.reset_default_graph()
     if params['model_type'] == 'ae':
         model = Autoencoder(cols, 2, [50, 25])
@@ -42,7 +49,8 @@ def AutoencoderTrain(params):
     bar_postfix_data = OrderedDict()
     history = OrderedDict()
     history['train_loss_b'] = []
-    history['train_loss_s'] = []
+    history['test_loss_b'] = []
+    history['test_loss_s'] = []
 
     with tf.Session() as sess:
         sess.run(init)
@@ -58,9 +66,13 @@ def AutoencoderTrain(params):
                 bar_postfix_data['train_loss_b'] = train_loss_b
                 history['train_loss_b'].append(float(train_loss_b))  # np.float32 are not json serializable
 
-                train_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_s, model.dropout: 0.})
-                bar_postfix_data['train_loss_s'] = train_loss_s
-                history['train_loss_s'].append(float(train_loss_s))  # np.float32 are not json serializable
+                test_loss_b = sess.run(model.loss, feed_dict={model.input_layer: X_test[y_test==0], model.dropout: 0.})
+                bar_postfix_data['test_loss_b'] = test_loss_b
+                history['test_loss_b'].append(float(test_loss_b))  # np.float32 are not json serializable
+
+                test_loss_s = sess.run(model.loss, feed_dict={model.input_layer: X_test[y_test==1], model.dropout: 0.})
+                bar_postfix_data['test_loss_s'] = test_loss_s
+                history['test_loss_s'].append(float(test_loss_s))  # np.float32 are not json serializable
 
                 bar.set_postfix(bar_postfix_data)
 
