@@ -6,8 +6,8 @@ class Autoencoder():
 
         if layer_params is None:
             layer_params = {
-                'activation_fn': tf.nn.elu,
-                'normalizer_fn': layer_norm
+                'activation_fn': tf.nn.relu6,
+                #'normalizer_fn': layer_norm
             }
 
         self.input_layer = tf.placeholder(tf.float32, [None, input_dimensions])
@@ -16,7 +16,7 @@ class Autoencoder():
 
         x = self.input_layer
         for layer_dims in layers:
-            x = tf.nn.dropout(x, 1-self.dropout)
+            x = dropout(x, 1-self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
         x = tf.nn.dropout(x, 1-self.dropout)
@@ -24,7 +24,7 @@ class Autoencoder():
 
         x = self.encoded
         for layer_dims in reversed(layers):
-            x = tf.nn.dropout(x, 1-self.dropout)
+            x = dropout(x, 1-self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
         x = tf.nn.dropout(x, 1-self.dropout)
@@ -34,7 +34,7 @@ class Autoencoder():
         self.sloss = tf.reduce_mean(tf.square(self.input_layer-self.decoded), axis=1)
         self.loss = tf.reduce_mean(self.sloss)
 
-        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-3, optimizer='Adam')
+        self.model = optimize_loss(self.loss, global_step=self.step, learning_rate=1e-4, optimizer='Adam')
 
 
 class VariationalAutoencoder():
@@ -43,16 +43,20 @@ class VariationalAutoencoder():
         if layer_params is None:
             layer_params = {
                 'activation_fn': tf.nn.relu6,
-                # 'normalizer_fn': layer_norm
+                #'normalizer_fn': layer_norm
             }
 
         self.input_layer = tf.placeholder(tf.float32, [None, input_dimensions])
+        self.dropout = tf.placeholder(tf.float32)
         batch_size = tf.shape(self.input_layer)[0]
         self.step = tf.Variable(0, trainable=False)
 
         x = self.input_layer
         for layer_dims in layers:
+            x = dropout(x, 1 - self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
+
+        x = tf.nn.dropout(x, 1-self.dropout)
 
         self.z_mu = fully_connected(x, latent_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm
@@ -66,7 +70,10 @@ class VariationalAutoencoder():
 
         x = self.z
         for layer_dims in reversed(layers):
+            x = dropout(x, 1 - self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
+
+        x = tf.nn.dropout(x, 1-self.dropout)
 
         self.x_mu = fully_connected(x, input_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm

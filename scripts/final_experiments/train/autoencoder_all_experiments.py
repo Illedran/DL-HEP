@@ -8,6 +8,7 @@ from collections import OrderedDict
 import json
 import os
 from scripts.final_experiments.utils import batch_generator
+import matplotlib.gridspec as gridspec
 
 
 def AutoencoderTrain(params):
@@ -31,9 +32,9 @@ def AutoencoderTrain(params):
 
     tf.reset_default_graph()
     if params['model_type'] == 'ae':
-        model = Autoencoder(cols, 10, [1500, 1500, 1500])
+        model = Autoencoder(cols, 2, [50, 25])
     elif params['model_type'] == 'vae':
-        model = VariationalAutoencoder(cols, 5, [1000, 1000, 1000, 1000])
+        model = VariationalAutoencoder(cols, 2, [50, 25])
 
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
@@ -47,9 +48,9 @@ def AutoencoderTrain(params):
         sess.run(init)
         for epoch in range(params['epochs']):
             with tqdm(desc="Epoch {0:04d}".format(epoch + 1), total=rows, ncols=200) as bar:
-                for batch in batch_generator(np.random.permutation(X_b), len(X_b)//100): # 100 gradient updates per epoch
+                for batch in batch_generator(np.random.permutation(X_b), params['batch_size']):
                     b_size = len(batch)
-                    sess.run(model.model, feed_dict={model.input_layer: batch, model.dropout: 0.5})
+                    sess.run(model.model, feed_dict={model.input_layer: batch, model.dropout: 0.2})
                     # Update data and bar
                     bar.update(b_size)
 
@@ -73,10 +74,11 @@ def AutoencoderTrain(params):
 
 def main():
     params = {
-        'epochs': 1000,
+        'epochs': 500,
+        'batch_size': 256
     }
 
-    for model_type in ['ae']:#, 'vae']:
+    for model_type in ['ae', 'vae']:
         for name_prefix in ["atlas-higgs_esperiment1", "atlas-higgs_esperiment2"]:
             for jet_num in [0, 1, 2, 3]:
                 params['jet_num'] = jet_num
