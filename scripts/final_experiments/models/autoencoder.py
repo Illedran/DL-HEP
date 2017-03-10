@@ -56,7 +56,6 @@ class VariationalAutoencoder():
             x = dropout(x, 1 - self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
-        x = tf.nn.dropout(x, 1-self.dropout)
 
         self.z_mu = fully_connected(x, latent_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm
@@ -73,7 +72,6 @@ class VariationalAutoencoder():
             x = dropout(x, 1 - self.dropout)
             x = fully_connected(x, layer_dims, **layer_params)
 
-        x = tf.nn.dropout(x, 1-self.dropout)
 
         self.x_mu = fully_connected(x, input_dimensions, activation_fn=None,
                                     # normalizer_fn=layer_norm

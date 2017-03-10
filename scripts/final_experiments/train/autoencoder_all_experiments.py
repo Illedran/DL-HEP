@@ -23,8 +23,6 @@ def AutoencoderTrain(params):
         "X").values.astype(np.float32)
     y_test = pd.read_hdf(
         "scripts/final_experiments/data/{0}_test_{1}.hdf".format(params['name_prefix'], params['jet_num']), "y")
-    w_test = pd.read_hdf(
-        "scripts/final_experiments/data/{0}_test_{1}.hdf".format(params['name_prefix'], params['jet_num']), "w")
 
     X_b = X_train[y_train == 0]
 
@@ -58,7 +56,7 @@ def AutoencoderTrain(params):
             with tqdm(desc="Epoch {0:04d}".format(epoch + 1), total=rows, ncols=200) as bar:
                 for batch in batch_generator(np.random.permutation(X_b), params['batch_size']):
                     b_size = len(batch)
-                    sess.run(model.model, feed_dict={model.input_layer: batch, model.dropout: 0.2})
+                    sess.run(model.model, feed_dict={model.input_layer: batch, model.dropout: 0.4})
                     # Update data and bar
                     bar.update(b_size)
 
@@ -86,8 +84,8 @@ def AutoencoderTrain(params):
 
 def main():
     params = {
-        'epochs': 500,
-        'batch_size': 256
+        'epochs': 100,
+        'batch_size': 128
     }
 
     for model_type in ['ae', 'vae']:
