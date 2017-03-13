@@ -95,9 +95,9 @@ ENV/
 # data
 *.hdf
 *.csv
-
-# results
-results*/
+plots/
+*.svg
+*.png
 
 # tensorboard logs
 tensorboard_logs/
