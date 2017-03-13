@@ -93,5 +93,13 @@ ENV/
 .vscode
 
 # data
-data
-results
+*.hdf
+*.csv
+
+# results
+results*/
+
+# tensorboard logs
+tensorboard_logs/
+# pip-compile
+requirements.in

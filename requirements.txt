@@ -4,19 +4,19 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-appdirs==1.4.1            # via setuptools
-bleach==1.5.0             # via nbconvert
+appdirs==1.4.3            # via setuptools
+bleach==2.0.0             # via nbconvert
 click==6.7                # via pip-tools
 cycler==0.10.0            # via matplotlib
 decorator==4.0.11         # via ipython, traitlets
 entrypoints==0.2.2        # via nbconvert
 first==2.0.1              # via pip-tools
 h5py==2.6.0
-html5lib==0.9999999       # via bleach
+html5lib==0.999999999     # via bleach
 ipykernel==4.5.2          # via ipywidgets, jupyter, jupyter-console, notebook, qtconsole
 ipython-genutils==0.1.0   # via nbformat, notebook, traitlets
-ipython==5.2.2            # via ipykernel, ipywidgets, jupyter-console
-ipywidgets==5.2.2         # via jupyter
+ipython==5.3.0            # via ipykernel, ipywidgets, jupyter-console
+ipywidgets==6.0.0         # via jupyter
 jinja2==2.9.5             # via nbconvert, notebook
 jsonschema==2.6.0         # via nbformat
 jupyter-client==5.0.0     # via ipykernel, jupyter-console, notebook, qtconsole
@@ -24,11 +24,11 @@ jupyter-console==5.1.0    # via jupyter
 jupyter-core==4.3.0       # via jupyter-client, nbconvert, nbformat, notebook, qtconsole
 jupyter==1.0.0
 keras==1.2.2
-MarkupSafe==0.23          # via jinja2
+MarkupSafe==1.0           # via jinja2
 matplotlib==2.0.0
 mistune==0.7.3            # via nbconvert
 nbconvert==5.1.1          # via jupyter, notebook
-nbformat==4.3.0           # via nbconvert, notebook
+nbformat==4.3.0           # via ipywidgets, nbconvert, notebook
 notebook==4.4.1           # via jupyter, widgetsnbextension
 numexpr==2.6.2            # via tables
 numpy==1.12.0
@@ -39,29 +39,32 @@ pexpect==4.2.1            # via ipython
 pickleshare==0.7.4        # via ipython
 pip-tools==1.8.0
 prompt-toolkit==1.0.13    # via ipython, jupyter-console
+protobuf==3.2.0           # via tensorflow-gpu
 ptyprocess==0.5.1         # via pexpect, terminado
 pygments==2.2.0           # via ipython, jupyter-console, nbconvert, qtconsole
-pyparsing==2.1.10         # via matplotlib, packaging
+pyparsing==2.2.0          # via matplotlib, packaging
 python-dateutil==2.6.0    # via jupyter-client, matplotlib, pandas
 pytz==2016.10             # via matplotlib, pandas
 pyyaml==3.12              # via keras
 pyzmq==16.0.2             # via jupyter-client
 qtconsole==4.2.1          # via jupyter
 scikit-learn==0.18.1      # via sklearn
-scipy==0.18.1
+scipy==0.19.0
 simplegeneric==0.8.1      # via ipython
-six==1.10.0               # via bleach, cycler, h5py, html5lib, keras, matplotlib, packaging, pip-tools, prompt-toolkit, python-dateutil, setuptools, tables, theano, traitlets
+six==1.10.0               # via bleach, cycler, h5py, html5lib, keras, matplotlib, packaging, pip-tools, prompt-toolkit, protobuf, python-dateutil, setuptools, tables, tensorflow-gpu, theano, traitlets
 sklearn==0.0
 tables==3.3.0
+tensorflow-gpu==0.12.1
 terminado==0.6            # via notebook
 testpath==0.3             # via nbconvert
 theano==0.8.2
 tornado==4.4.2            # via ipykernel, notebook, terminado
 tqdm==4.11.2
-traitlets==4.3.1          # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-core, nbconvert, nbformat, notebook, qtconsole
+traitlets==4.3.2          # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-core, nbconvert, nbformat, notebook, qtconsole
 wcwidth==0.1.7            # via prompt-toolkit
+webencodings==0.5         # via html5lib
 wheel==0.29.0
-widgetsnbextension==1.2.6  # via ipywidgets
+widgetsnbextension==2.0.0  # via ipywidgets
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools                # via ipython
+# setuptools                # via html5lib, ipython, protobuf

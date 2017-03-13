@@ -1,0 +1,3 @@
+[submodule "keras-adversarial"]
+	path = keras-adversarial
+	url = https://github.com/bstriner/keras-adversarial.git
